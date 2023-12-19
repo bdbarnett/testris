@@ -9,14 +9,14 @@ from machine import reset  # For restarting the game
 from micropython import const  # For constant values
 from framebuf import FrameBuffer, RGB565  # For drawing text
 from display_config import display_drv  # For the display driver
-from mpdisplay import allocate_buffer  # For allocating buffers for the blocks and text
+from heap_caps import malloc, CAP_DMA  # For allocating buffers for the blocks and text
 
 # Define the draw_block function
 draw_block = lambda x, y, index: display_drv.blit(x, y, block_size, block_size, blocks[index])
 
 # Get the display dimensions
-display_width = display_drv.width()
-display_height = display_drv.height()
+display_width = display_drv.display_width
+display_height = display_drv.display_height
 
 # Setup the keypad, in this case a touchscreen keypad emulator
 # keypad should have a .read() method that returns the values 
@@ -97,7 +97,7 @@ splash = [
 # Create the blocks: black for background, 7 piece colors, gray for border, white for touch targets
 blocks = []
 for color in [BLACK, CYAN, YELLOW, PURPLE, GREEN, BLUE, RED, ORANGE, GRAY, WHITE]:
-    block = allocate_buffer(block_size*block_size*2) # Allocate a buffer for the block, 2 bytes per pixel
+    block = malloc(block_size*block_size*2, CAP_DMA) # Allocate a buffer for the block, 2 bytes per pixel
     for y in range(block_size):  # Working top to bottom
         for x in range(block_size):  # Then left to right
             if color == BLACK:
@@ -118,7 +118,7 @@ for color in [BLACK, CYAN, YELLOW, PURPLE, GREEN, BLUE, RED, ORANGE, GRAY, WHITE
     blocks.append(block)
 
 # Create a frame buffer for text
-text_buffer = allocate_buffer(banner_width * banner_height * 2)
+text_buffer = malloc(banner_width*banner_height*2, CAP_DMA)
 text_fb = FrameBuffer(text_buffer, banner_width, banner_height, RGB565)
 
 
@@ -319,6 +319,7 @@ if SPLASH_ENABLED:  # Show the splash screen and wait for the user to press a ke
     wait_for_key()  # Wait for the user to press a key
 
 while True:  # Outer loop - play the game repeatedly
+    print("Outer loop")
     # Initialize game state
     # grid is a 2D list of block indices, 0 for empty, 1-7 indicates block color
     # grid is y, x, not x, y, so grid[y][x] is the block at (x, y).
@@ -343,6 +344,7 @@ while True:  # Outer loop - play the game repeatedly
     # Play the game
     show_score()  # Show the score
     while True:  # Main game loop
+        print("Main game loop")
         current_piece = next_piece  # Set the next piece to the current piece
         current_position = [GRID_WIDTH // 2 - len(current_piece[0]) // 2, 0]  # Start position for the piece
         if collision(current_piece, current_position, 0, 0):  # Check for game over
@@ -354,6 +356,7 @@ while True:  # Outer loop - play the game repeatedly
         last_drop = ticks_ms()  # Time of last automatic drop
 
         while current_piece:  # Middle loop - while the piece is in play
+            print("Redraw piece loop")
             draw_piece(current_piece, current_position)  # Draw the current piece
             old_piece = current_piece.copy()  # Save the previous piece
             old_position = current_position.copy()  # Save the previous position
