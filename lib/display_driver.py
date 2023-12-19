@@ -69,6 +69,7 @@ class Display:
         color_byte_order=BYTE_ORDER_RGB,
         orientation=PORTRAIT,
         color_space=None,
+        rgb565_byte_swap=False,
         bpp=None,
     ):
 

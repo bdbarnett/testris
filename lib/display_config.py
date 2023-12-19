@@ -57,6 +57,7 @@ display_drv = ST7796(
     color_byte_order=BYTE_ORDER_BGR,
     orientation=PORTRAIT,
     color_space=None,
+    rgb565_byte_swap=False,
     bpp=16,
 )
 

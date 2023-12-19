@@ -21,6 +21,12 @@ _PGC = const(0xE0)
 _NGC = const(0xE1)
 _DISPON = const(0x29)
 
+# color inversion on
+_INVON = const(0x21)
+
+# color inversion off
+_INVOFF = const(0x20)
+
 STATE_HIGH = display_driver_framework.STATE_HIGH
 STATE_LOW = display_driver_framework.STATE_LOW
 STATE_PWM = display_driver_framework.STATE_PWM
@@ -143,6 +149,10 @@ class ST7796(display_driver_framework.Display):
         self.set_params(_CSCON, param_mv[:1])
 
         time.sleep_ms(120)
+        
+        # if one doesn't work comment it out and uncomment the other 
+        self.set_params(_INVON)
+        # self.set_params(_INVOFF )
 
         self.set_params(_DISPON)
 
