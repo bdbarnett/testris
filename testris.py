@@ -11,8 +11,9 @@ from machine import reset  # For restarting the game
 from framebuf import FrameBuffer, RGB565  # For drawing text boxes
 from micropython import const  # For constant values
 
-# If the color of the square piece isn't yellow on your display, change this value.
-reverse_bytes_in_word = True
+# If the color of the square piece isn't all yellow on your display, change this value.
+# Make sure not to have it enabled in both board_config.py and here.
+reverse_bytes_in_word = False
 
 # Define the draw_block function
 draw_block = lambda x, y, index: display_drv.blit(x, y, block_size, block_size, blocks[index])
