@@ -11,10 +11,6 @@ from machine import reset  # For restarting the game
 from framebuf import FrameBuffer, RGB565  # For drawing text boxes
 from micropython import const  # For constant values
 
-# If the color of the square piece isn't all yellow on your display, change this value.
-# Make sure not to have it enabled in both board_config.py and here.
-reverse_bytes_in_word = False
-
 # Define the draw_block function
 draw_block = lambda x, y, index: display_drv.blit(x, y, block_size, block_size, blocks[index])
 
@@ -116,8 +112,8 @@ for color in [BLACK, CYAN, YELLOW, PURPLE, GREEN, BLUE, RED, ORANGE, GRAY, WHITE
             else:
                 pixel_color = color  # Fill the block with the specified color
             address = (x + (y * block_size)) * 2  # Address of the pixel in the buffer, 2 bytes per pixel
-            block[address] = pixel_color & 0xff  if not reverse_bytes_in_word else pixel_color >> 8 # Least significant byte
-            block[address + 1] = pixel_color >> 8  if not reverse_bytes_in_word else pixel_color & 0xff # Most significant byte
+            block[address] = pixel_color & 0xff  # Least significant byte
+            block[address + 1] = pixel_color >> 8  # Most significant byte
     blocks.append(block)
 
 # Create a frame buffer for text
