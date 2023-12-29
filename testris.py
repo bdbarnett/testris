@@ -2,14 +2,18 @@
 Testris game implemented in MicroPython by Brad Barnett.
 """
 
-from board_config import display_drv, touch_drv_read  # For the display & optional touch drivers
-from heap_caps import malloc, CAP_DMA  # For allocating buffers for the blocks and text
+# For the display & optional touch drivers
+from board_config import display_drv, touch_read_func, touch_rotation_table
+from heap_caps import malloc, CAP_DMA, CAP_INTERNAL  # For allocating buffers for the blocks and text
 from time import ticks_ms, ticks_diff  # For timing
 from random import choice, randint  # For random piece selection
 from json import load, dump  # For saving the high score
 from machine import reset  # For restarting the game
 from framebuf import FrameBuffer, RGB565  # For drawing text boxes
 from micropython import const  # For constant values
+
+# If the cube piece is not yellow, change this value
+swap_color_bytes = True
 
 # Define the draw_block function
 draw_block = lambda x, y, index: display_drv.blit(x, y, block_size, block_size, blocks[index])
@@ -22,10 +26,16 @@ display_height = display_drv.height
 # keypad should have a .read() method that returns the values: 
 #     keypad.LEFT, .DOWN, .RIGHT, .CCW, .CW, .START and .PAUSE
 # In this case keypad is a touchscreen keypad emulator provided by Touchpad.
-# To use Touchpad, change the first argument, touch_drv_read, to the
-# function that reads touches from your touch driver and set touch_rotation=0 to 7.
+# To use Touchpad, change the first argument, touch_read_func, to the
+# function that reads touches from your touch driver.
 from touchpad import Touchpad
-keypad = Touchpad(touch_drv_read, width=display_width, height=display_height, touch_rotation=0)
+keypad = Touchpad(
+    touch_read_func,
+    width=display_width,
+    height=display_height,
+    touch_rotation=display_drv.rotation,
+    rotation_table=touch_rotation_table,
+)
 
 # Define RGB565 colors
 BLACK = const(0x0000)
@@ -96,7 +106,8 @@ splash = [
 # Create the blocks: black for background, 7 piece colors, gray for border, white for touch targets
 blocks = []
 for color in [BLACK, CYAN, YELLOW, PURPLE, GREEN, BLUE, RED, ORANGE, GRAY, WHITE]:
-    block = malloc(block_size*block_size*2, CAP_DMA) # Allocate a buffer for the block, 2 bytes per pixel
+    # Allocate a buffer for the block, 2 bytes per pixel.  Use DMA and internal RAM.
+    block = malloc(block_size*block_size*2, CAP_DMA | CAP_INTERNAL)
     for y in range(block_size):  # Working top to bottom
         for x in range(block_size):  # Then left to right
             if color == BLACK:
@@ -112,8 +123,8 @@ for color in [BLACK, CYAN, YELLOW, PURPLE, GREEN, BLUE, RED, ORANGE, GRAY, WHITE
             else:
                 pixel_color = color  # Fill the block with the specified color
             address = (x + (y * block_size)) * 2  # Address of the pixel in the buffer, 2 bytes per pixel
-            block[address] = pixel_color & 0xff  # Least significant byte
-            block[address + 1] = pixel_color >> 8  # Most significant byte
+            block[address] = pixel_color & 0xff if not swap_color_bytes else pixel_color >> 8
+            block[address + 1] = pixel_color >> 8 if not swap_color_bytes else pixel_color & 0xff
     blocks.append(block)
 
 # Create a frame buffer for text

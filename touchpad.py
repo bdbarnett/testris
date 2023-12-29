@@ -1,3 +1,4 @@
+_DEFAULT_TOUCH_ROTATION_TABLE = (0b000, 0b101, 0b110, 0b011)
 
 class Touchpad():
     LEFT = 1
@@ -10,42 +11,50 @@ class Touchpad():
     UNUSED = 8
     PAUSE = 9
     
-    def __init__(self, touch_read_func, width, height, touch_rotation=0):
-        self._touch_read = touch_read_func
-        self.width=width
-        self.height=height
+    def __init__(self, touch_read_func, width, height, touch_rotation, rotation_table=None):
+        self._touch_read_func = touch_read_func
+        self.width = width
+        self.height = height
+        self._touch_rotation_table = rotation_table if rotation_table else _DEFAULT_TOUCH_ROTATION_TABLE
         self.set_touch_rotation(touch_rotation)
-
-    def set_touch_rotation(self, touch_rotation):
-        # Touch_rotation is an integer from 0 to 7 (3 bits)
-        # Currently, bit 0 = invert_y, bit 1 is invert_x and bit 2 is swap_xy, but that may change
-        # if I learn displays are consistent with their rotations and this doesn't match them.
-        # Your display driver should have a way to set rotation before you add it to Devices,
-        # but your touch driver may not have a way to set its rotation.  You can call this function
-        # any time after you've created devices to change the rotation.
-        self._touch_rotation = touch_rotation // 8 if touch_rotation else None
-        self._invert_y = True if touch_rotation & 1 else False
-        self._invert_x = True if touch_rotation >> 1 & 1 else False
-        self._swap_xy = True if touch_rotation >> 2 & 1 else False
-        self._max_x = self.width - 1
-        self._max_y = self.height - 1
 
     def get_touched(self):
         # touch_read_func should return None, a point as a tuple (x, y), a point as a list [x, y] or 
         # a tuple / list of points ((x1, y1), (x2, y2)), [(x1, y1), (x2, y2)], ([x1, y1], [x2, y2]),
         # or [[x1, x2], [y1, y2]].  If it doesn't, create a wrapper around your driver's read function
-        if touched := self._touch_read():
+        # and set touch_read_func to that wrapper, or subclass TouchDriver and override .get_touched()
+        # with your own logic.
+        touched = self._touch_read_func()
+        if touched:
             # If it looks like a point, use it, otherwise get the first point out of the list / tuple
             (x, y) = touched if isinstance(touched[0], int) else touched[0]
-            if self._touch_rotation is not None:
-                if self._swap_xy:
-                    x, y = y, x
-                if self._invert_x:
-                    x = self._max_x - x
-                if self._invert_y:
-                    y = self._max_y - y
+            if self._touch_swap_xy:
+                x, y = y, x
+            if self._touch_invert_x:
+                x = self._touch_max_x - x
+            if self._touch_invert_y:
+                y = self._touch_max_y - y
             return x, y
         return None
+
+    def set_touch_rotation(self, rotation):
+        index = (rotation // 90) % len(self._touch_rotation_table)
+        mask = self._touch_rotation_table[index]
+        print(f"Looking up touch rotation {rotation} degrees (index: {index})")
+        self.set_touch_rotation_mask(mask)
+
+    def set_touch_rotation_mask(self, mask):
+        # mask is an integer from 0 to 7 (or 0b001 to 0b111, 3 bits)
+        # Currently, bit 2 = invert_y, bit 1 is invert_x and bit 0 is swap_xy, but that may change.
+        # Your display driver should have a way to set rotation, but your touch driver may not have a way to set
+        # its rotation.  You can call this function any time after you've created devices to change the rotation.
+        print(f"Setting rotation mask to 0b{mask:>03b} (decimal {mask})\n")
+        mask = mask & 0b111
+        self._touch_invert_y = True if mask >> 2 & 1 else False
+        self._touch_invert_x = True if mask >> 1 & 1 else False
+        self._touch_swap_xy =  True if mask >> 0 & 1 else False
+        self._touch_max_x = self.width - 1
+        self._touch_max_y = self.height - 1
 
     def read(self):
         try:
