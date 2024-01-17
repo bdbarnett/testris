@@ -4,7 +4,6 @@ Testris game implemented in MicroPython by Brad Barnett.
 
 # For the display & optional touch drivers
 from board_config import display_drv, touch_read_func, touch_rotation_table
-from heap_caps import malloc, CAP_DMA, CAP_INTERNAL  # For allocating buffers for the blocks and text
 from time import ticks_ms, ticks_diff  # For timing
 from random import choice, randint  # For random piece selection
 from json import load, dump  # For saving the high score
@@ -34,6 +33,16 @@ keypad = Touchpad(
     touch_rotation=display_drv.rotation,
     rotation_table=touch_rotation_table,
 )
+
+# Determine how buffers are allocated
+alloc_buffer = lambda size: memoryview(bytearray(size))
+# If heap_caps is available, use it to allocate in internal DMA-capable memory
+if platform == "esp32":
+    try:
+        from heap_caps import malloc, CAP_DMA, CAP_INTERNAL  # For allocating buffers for the blocks and text
+        alloc_buffer = lambda size: malloc(size, CAP_DMA | CAP_INTERNAL)
+    except ImportError:
+        pass
 
 # If the display bus is a MicroPython bus (not C) and it has byte swapping enabled,
 # disable it and set a flag so we can swap the bytes as they are put into the buffers
@@ -114,7 +123,7 @@ splash = [
 blocks = []
 for color in [BLACK, CYAN, YELLOW, PURPLE, GREEN, BLUE, RED, ORANGE, GRAY, WHITE]:
     # Allocate a buffer for the block, 2 bytes per pixel.  Use DMA and internal RAM.
-    block = malloc(block_size*block_size*2, CAP_DMA | CAP_INTERNAL)
+    block = alloc_buffer(block_size*block_size*2)
     for y in range(block_size):  # Working top to bottom
         for x in range(block_size):  # Then left to right
             if color == BLACK:
