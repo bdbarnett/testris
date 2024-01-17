@@ -10,6 +10,7 @@ from json import load, dump  # For saving the high score
 from machine import reset  # For restarting the game
 from framebuf import FrameBuffer, RGB565  # For drawing text boxes
 from micropython import const  # For constant values
+from sys import platform  # To determine which function allocates buffers
 
 
 # Define the draw_block function
