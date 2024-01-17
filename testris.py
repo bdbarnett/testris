@@ -12,8 +12,6 @@ from machine import reset  # For restarting the game
 from framebuf import FrameBuffer, RGB565  # For drawing text boxes
 from micropython import const  # For constant values
 
-# If the cube piece is not yellow, change this value
-swap_color_bytes = True
 
 # Define the draw_block function
 draw_block = lambda x, y, index: display_drv.blit(x, y, block_size, block_size, blocks[index])
@@ -36,6 +34,15 @@ keypad = Touchpad(
     touch_rotation=display_drv.rotation,
     rotation_table=touch_rotation_table,
 )
+
+# If the display bus is a MicroPython bus (not C) and it has byte swapping enabled,
+# disable it and set a flag so we can swap the bytes as they are put into the buffers
+swap_color_bytes = False
+if hasattr(display_drv.display_bus, "name") and "MicroPython" in display_drv.display_bus.name:
+    if display_drv.display_bus.swap_enabled:
+        print("Disabling color swap and populating buffers with colors swapped instead.")
+        display_drv.display_bus.enable_swap(False)
+        swap_color_bytes = True
 
 # Define RGB565 colors
 BLACK = const(0x0000)
