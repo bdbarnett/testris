@@ -145,7 +145,7 @@ for color in [BLACK, CYAN, YELLOW, PURPLE, GREEN, BLUE, RED, ORANGE, GRAY, WHITE
     blocks.append(block)
 
 # Create a frame buffer for text
-text_buffer = malloc(banner_width*banner_height*2, CAP_DMA)
+text_buffer = alloc_buffer(banner_width*banner_height*2)
 text_fb = FrameBuffer(text_buffer, banner_width, banner_height, RGB565)
 
 
