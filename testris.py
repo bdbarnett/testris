@@ -49,7 +49,7 @@ if platform == "esp32":
 # disable it and set a flag so we can swap the bytes as they are put into the buffers
 swap_color_bytes = False
 if hasattr(display_drv.display_bus, "name") and "MicroPython" in display_drv.display_bus.name:
-    if display_drv.display_bus.swap_enabled:
+    if display_drv.display_bus.enable_swap():
         print("Disabling color swap and populating buffers with colors swapped instead.")
         display_drv.display_bus.enable_swap(False)
         swap_color_bytes = True
