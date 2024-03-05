@@ -10,8 +10,6 @@ from json import load, dump  # For saving the high score
 from machine import reset  # For restarting the game
 from framebuf import FrameBuffer, RGB565  # For drawing text boxes
 from micropython import const  # For constant values
-from sys import platform  # To determine which function allocates buffers
-
 
 # Define the draw_block function
 draw_block = lambda x, y, index: display_drv.blit(x, y, block_size, block_size, blocks[index])
@@ -35,24 +33,15 @@ keypad = Touchpad(
     rotation_table=touch_rotation_table,
 )
 
-# Determine how buffers are allocated
+# Define how buffers are allocated
 alloc_buffer = lambda size: memoryview(bytearray(size))
-# If heap_caps is available, use it to allocate in internal DMA-capable memory
-if platform == "esp32":
-    try:
-        from heap_caps import malloc, CAP_DMA, CAP_INTERNAL  # For allocating buffers for the blocks and text
-        alloc_buffer = lambda size: malloc(size, CAP_DMA | CAP_INTERNAL)
-    except ImportError:
-        pass
 
-# If the display bus is a MicroPython bus (not C) and it has byte swapping enabled,
-# disable it and set a flag so we can swap the bytes as they are put into the buffers
-swap_color_bytes = False
-if hasattr(display_drv.display_bus, "name") and "MicroPython" in display_drv.display_bus.name:
-    if display_drv.display_bus.enable_swap():
-        print("Disabling color swap and populating buffers with colors swapped instead.")
-        display_drv.display_bus.enable_swap(False)
-        swap_color_bytes = True
+# If byte swapping is required and the display bus is capable of having byte swapping disabled,
+# disable it and set a flag so we can swap the color bytes as they are created.
+if display_drv.requires_byte_swap:
+    needs_swap = display_drv.bus_swap_disable(True)
+else:
+    needs_swap = False
 
 # Define RGB565 colors
 BLACK = const(0x0000)
@@ -140,8 +129,8 @@ for color in [BLACK, CYAN, YELLOW, PURPLE, GREEN, BLUE, RED, ORANGE, GRAY, WHITE
             else:
                 pixel_color = color  # Fill the block with the specified color
             address = (x + (y * block_size)) * 2  # Address of the pixel in the buffer, 2 bytes per pixel
-            block[address] = pixel_color & 0xff if not swap_color_bytes else pixel_color >> 8
-            block[address + 1] = pixel_color >> 8 if not swap_color_bytes else pixel_color & 0xff
+            block[address] = pixel_color & 0xff if not needs_swap else pixel_color >> 8
+            block[address + 1] = pixel_color >> 8 if not needs_swap else pixel_color & 0xff
     blocks.append(block)
 
 # Create a frame buffer for text
