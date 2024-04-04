@@ -3,13 +3,18 @@ Testris game implemented in MicroPython by Brad Barnett.
 """
 
 # For the display & optional touch drivers
-from board_config import display_drv, touch_read_func, touch_rotation_table
-from time import ticks_ms, ticks_diff  # For timing
+from board_config import display_drv
 from random import choice, randint  # For random piece selection
 from json import load, dump  # For saving the high score
-from machine import reset  # For restarting the game
+from sys import exit  # For exiting the game
 from framebuf import FrameBuffer, RGB565  # For drawing text boxes
-from micropython import const  # For constant values
+
+try:
+    from time import ticks_ms, ticks_diff  # For timing
+    from micropython import const  # For constant values
+except:
+    from adafruit_ticks import ticks_ms, ticks_diff
+    const = lambda x: x
 
 # Define the draw_block function
 draw_block = lambda x, y, index: display_drv.blit(x, y, block_size, block_size, blocks[index])
@@ -21,17 +26,9 @@ display_height = display_drv.height
 # Setup the keypad
 # keypad should have a .read() method that returns the values: 
 #     keypad.LEFT, .DOWN, .RIGHT, .CCW, .CW, .START and .PAUSE
-# In this case keypad is a touchscreen keypad emulator provided by Touchpad.
-# To use Touchpad, change the first argument, touch_read_func, to the
-# function that reads touches from your touch driver.
-from touchpad import Touchpad
-keypad = Touchpad(
-    touch_read_func,
-    width=display_width,
-    height=display_height,
-    touch_rotation=display_drv.rotation,
-    rotation_table=touch_rotation_table,
-)
+# In this case keypad is a touchscreen keypad emulator provided by Matrix.
+from touch_matrix import Matrix
+keypad = Matrix(display_drv)
 
 # Define how buffers are allocated
 alloc_buffer = lambda size: memoryview(bytearray(size))
@@ -399,7 +396,7 @@ while True:  # Outer loop - play the game repeatedly
                         key = wait_for_key(exclude=[keypad.PAUSE])  # Wait for the user to press a key, excluding PAUSE
                         if key == keypad.START:
                             clear_screen()  # Clear the screen
-                            reset()  # Reset the machine
+                            exit()  # Reset the machine
                         else:  # Resume the game
                             show_score()  # Show the score
 
