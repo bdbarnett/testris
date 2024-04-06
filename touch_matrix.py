@@ -1,45 +1,36 @@
+"""
+Matrix keypad helper for touch displays in MPDisplay
 
+Divides the display into a grid of rows and columns.
+Returns the position of the touched cell, starting from 1
+at the top left, or None if no cell is touched.
+
+Usage:
+from touch_matrix import Matrix
+from board_config import display_drv
+
+matrix = Matrix(display_drv, cols=3, rows=3)
+while True:
+    if pos := matrix.read():
+        print(pos)
+
+"""
 class Matrix():
-    LEFT = 1
-    DOWN = 2
-    RIGHT = 3
-    CW = 4
-    UP = 5
-    CCW = 6
-    START = 7
-    UNUSED = 8
-    PAUSE = 9
-    
-    def __init__(self, display_drv):
+    def __init__(self, display_drv, cols=3, rows=3):
         self._display_drv = display_drv
+        self.cols = cols
+        self.rows = rows
 
     def read(self):
         try:
             point = self._display_drv.get_touched()
-        except OSError as error:
+        except OSError:
             # Not ready to read yet
             return None
         if point:
             x, y = point
-            if x < self._display_drv.width // 3:
-                if y < self._display_drv.height // 3:
-                    return 7
-                elif y > self._display_drv.height * 2 // 3:
-                    return 1
-                else:
-                    return 4
-            elif x > self._display_drv.width * 2 // 3:
-                if y < self._display_drv.height // 3:
-                    return 9
-                elif y > self._display_drv.height * 2 // 3:
-                    return 3
-                else:
-                    return 6
-            else:
-                if y < self._display_drv.height // 3:
-                    return 8
-                elif y > self._display_drv.height * 2 // 3:
-                    return 2
-                else:
-                    return 5
+            col = x // (self._display_drv.width // self.cols)
+            row = y // (self._display_drv.height // self.rows)
+            pos = row * self.cols + col + 1
+            return pos
         return None

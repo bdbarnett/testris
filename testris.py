@@ -16,19 +16,19 @@ except:
     from adafruit_ticks import ticks_ms, ticks_diff
     const = lambda x: x
 
+# Setup the keypad
+# keypad should have a .read() method that returns the values mapped below: 
+# In this case keypad is a touchscreen keypad emulator provided by Matrix.
+from touch_matrix import Matrix
+keypad = Matrix(display_drv)
+START, UNUSED, PAUSE, CW, DROP, CCW, LEFT, DOWN, RIGHT = range(1, 10)
+
 # Define the draw_block function
 draw_block = lambda x, y, index: display_drv.blit(x, y, block_size, block_size, blocks[index])
 
 # Get the display dimensions
 display_width = display_drv.width
 display_height = display_drv.height
-
-# Setup the keypad
-# keypad should have a .read() method that returns the values: 
-#     keypad.LEFT, .DOWN, .RIGHT, .CCW, .CW, .START and .PAUSE
-# In this case keypad is a touchscreen keypad emulator provided by Matrix.
-from touch_matrix import Matrix
-keypad = Matrix(display_drv)
 
 # Define how buffers are allocated
 alloc_buffer = lambda size: memoryview(bytearray(size))
@@ -62,8 +62,8 @@ GRID_HEIGHT = const(20)
 BACKGROUND_INDEX = const(0)  # Index of the background block (black)
 BORDER_INDEX = const(8)  # Index of the border block (gray)
 TOUCH_TARGET_INDEX = const(9)  # Index of the touch target block (white).  Only used if keypad is a Touchpad.
-CW = const(1)
-CCW = const(-1)
+ROTCW = const(1)
+ROTCCW = const(-1)
 
 # Define the blocks
 block_size = min(display_width//(GRID_WIDTH+2), display_height//(GRID_HEIGHT+4))  # Size in pixels
@@ -352,7 +352,7 @@ while True:  # Outer loop - play the game repeatedly
     draw_banner(f"High Score {high_score:,}\n\nPress START\nto play.")
     if str(type(keypad)).find("Touchpad"):  # If we're using the touchpad
         draw_touch_targets()  # Draw the touch targets
-    wait_for_key(keypad.START)  # Wait for the user to press START
+    wait_for_key(START)  # Wait for the user to press START
 
     # Play the game
     show_score()  # Show the score
@@ -378,23 +378,23 @@ while True:  # Outer loop - play the game repeatedly
                 # If it has been DELAY ms since the last keypad read, then read the keypad
                 if (ticks_diff(ticks_ms(), last_read) >= DELAY) and (key := keypad.read()):  # If a key was pressed
                     last_read = ticks_ms()  # Save the time of the last read
-                    if key == keypad.LEFT and not collision(current_piece, current_position, -1, 0):
+                    if key == LEFT and not collision(current_piece, current_position, -1, 0):
                         current_position[0] -= 1  # Move the piece left
-                    elif key == keypad.RIGHT and not collision(current_piece, current_position, 1, 0):
+                    elif key == RIGHT and not collision(current_piece, current_position, 1, 0):
                         current_position[0] += 1  # Move the piece right
-                    elif key == keypad.DOWN and not collision(current_piece, current_position, 0, 1):
+                    elif key == DOWN and not collision(current_piece, current_position, 0, 1):
                         current_position[1] += 1  # Move the piece down
                         last_drop = ticks_ms()  # Reset the last drop time
-                    elif key == keypad.UP and not collision(current_piece, current_position, 0, 1):
+                    elif key == DROP and not collision(current_piece, current_position, 0, 1):
                         hard_drop = True  # Hard drop the piece
-                    elif key == keypad.CCW and not collision(current_piece, current_position, 0, 0, CCW):
+                    elif key == CCW and not collision(current_piece, current_position, 0, 0, ROTCCW):
                         current_piece = rotate(current_piece, CCW)  # Rotate the piece counter-clockwise
-                    elif key == keypad.CW and not collision(current_piece, current_position, 0, 0, CW):
+                    elif key == CW and not collision(current_piece, current_position, 0, 0, ROTCW):
                         current_piece = rotate(current_piece, CW)  # Rotate the piece clockwise
-                    elif key == keypad.PAUSE:  # Pause the game
+                    elif key == PAUSE:  # Pause the game
                         draw_banner("Paused.\n\nPress START to reset.\nAny key to resume.")
-                        key = wait_for_key(exclude=[keypad.PAUSE])  # Wait for the user to press a key, excluding PAUSE
-                        if key == keypad.START:
+                        key = wait_for_key(exclude=[PAUSE])  # Wait for the user to press a key, excluding PAUSE
+                        if key == START:
                             clear_screen()  # Clear the screen
                             exit()  # Reset the machine
                         else:  # Resume the game
@@ -451,4 +451,4 @@ while True:  # Outer loop - play the game repeatedly
     else:
         message = "Game over!"
     show_score(message)  # Show the score
-    wait_for_key(keypad.START)  # Wait for the user to press START
+    wait_for_key(START)  # Wait for the user to press START
