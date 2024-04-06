@@ -31,6 +31,5 @@ class Matrix():
             x, y = point
             col = x // (self._display_drv.width // self.cols)
             row = y // (self._display_drv.height // self.rows)
-            pos = row * self.cols + col + 1
-            return pos
+            return row * self.cols + col + 1
         return None
