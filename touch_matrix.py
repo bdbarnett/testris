@@ -34,7 +34,6 @@ class Matrix():
 
         if event and event.type == Events.KEYDOWN:
             key = event.key
-            print(f"{key=}")
             return key
 
         return None
