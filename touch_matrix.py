@@ -1,5 +1,5 @@
 """
-Matrix keypad helper for touch displays in MPDisplay
+Matrix keypad helper for touch displays on MPDisplay
 
 Divides the display into a grid of rows and columns.
 Returns the position of the touched cell, starting from 1
@@ -13,23 +13,28 @@ matrix = Matrix(display_drv, cols=3, rows=3)
 while True:
     if pos := matrix.read():
         print(pos)
-
 """
+from mpdisplay import Events
+
 class Matrix():
-    def __init__(self, display_drv, cols=3, rows=3):
+    def __init__(self, display_drv, cols=3, rows=3, keys=None):
+        self._keys = keys if keys else [i+1 for i in range(cols*rows)]
         self._display_drv = display_drv
-        self.cols = cols
-        self.rows = rows
+        self._cols = cols
+        self._rows = rows
 
     def read(self):
-        try:
-            point = self._display_drv.get_touched()
-        except OSError:
-            # Not ready to read yet
-            return None
-        if point:
-            x, y = point
-            col = x // (self._display_drv.width // self.cols)
-            row = y // (self._display_drv.height // self.rows)
-            return row * self.cols + col + 1
+        event = self._display_drv.poll_event()
+        if event and event.type == Events.MOUSEBUTTONDOWN and event.button == 1:
+            x, y = event.pos
+            col = x // (self._display_drv.width // self._cols)
+            row = y // (self._display_drv.height // self._rows)
+            key = self._keys[row*self._cols + col]
+            return key
+
+        if event and event.type == Events.KEYDOWN:
+            key = event.key
+            print(f"{key=}")
+            return key
+
         return None
