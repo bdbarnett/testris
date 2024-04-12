@@ -19,7 +19,7 @@ except:
 # Setup the keypad
 # keypad should have a .read() method that returns the values mapped below: 
 # In this case keypad is a touchscreen keypad emulator provided by Matrix.
-from touch_matrix import Matrix
+from touch_keypad import Keypad
 START = 32  # SPACE
 UNUSED = 13  # ENTER
 PAUSE = 27  # ESC
@@ -29,7 +29,7 @@ CCW = 102  # F
 LEFT = 1073741904  # LEFT
 DOWN = 1073741905  # DOWN
 RIGHT = 1073741903  # RIGHT
-keypad = Matrix(display_drv, keys=[START, UNUSED, PAUSE, CW, DROP, CCW, LEFT, DOWN, RIGHT])
+keypad = Keypad(display_drv, keys=[START, UNUSED, PAUSE, CW, DROP, CCW, LEFT, DOWN, RIGHT])
 
 
 # Define the draw_block function
