@@ -20,15 +20,16 @@ except:
 # keypad should have a .read() method that returns the values mapped below: 
 # In this case keypad is a touchscreen keypad emulator provided by Matrix.
 from touch_keypad import Keypad
-START = 32  # SPACE
-UNUSED = 13  # ENTER
-PAUSE = 27  # ESC
-CW = 100  # D
-DROP = 1073741906  # UP
-CCW = 102  # F
-LEFT = 1073741904  # LEFT
-DOWN = 1073741905  # DOWN
-RIGHT = 1073741903  # RIGHT
+from mpdisplay import Keys
+START = Keys.K_SPACE  # SPACE
+UNUSED = 0  # Not used
+PAUSE = Keys.K_ESCAPE  # ESCAPE
+CW = Keys.K_d  # D
+DROP = Keys.K_UP  # UP
+CCW = Keys.K_f  # F
+LEFT = Keys.K_LEFT  # LEFT
+DOWN = Keys.K_DOWN  # DOWN
+RIGHT = Keys.K_RIGHT  # RIGHT
 keypad = Keypad(display_drv, keys=[START, UNUSED, PAUSE, CW, DROP, CCW, LEFT, DOWN, RIGHT])
 
 
