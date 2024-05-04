@@ -1,0 +1,6 @@
+{
+    "urls": [
+      ["examples/testris.py", "github:bdbarnett/testris/testris.py"]
+    ],
+    "version": "0.1"
+  }
