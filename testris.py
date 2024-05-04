@@ -18,7 +18,7 @@ except:
 
 # Setup the keypad
 # keypad should have a .read() method that returns the values mapped below: 
-# In this case keypad is a touchscreen keypad emulator provided by Matrix.
+# In this case keypad is a touchscreen keypad emulator provided by touch_keypad.
 from touch_keypad import Keypad
 from mpdisplay import Keys
 START = Keys.K_SPACE  # SPACE
