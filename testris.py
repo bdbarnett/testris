@@ -21,7 +21,7 @@ except:
 # In this case keypad is a touchscreen keypad emulator provided by touch_keypad.
 from touch_keypad import Keypad
 from mpdisplay import Keys
-START = Keys.K_SPACE  # SPACE
+START = Keys.K_RETURN  # RETURN
 UNUSED = 0  # Not used
 PAUSE = Keys.K_ESCAPE  # ESCAPE
 CW = Keys.K_d  # D
