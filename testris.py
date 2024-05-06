@@ -188,9 +188,7 @@ def clear_screen():
     """
     Clear the screen.
     """
-    for x in range(0, display_width, block_size):
-        for y in range(0, display_height, block_size):
-            draw_block(x, y, BACKGROUND_INDEX)
+    display_drv.fill_rect(0, 0, display_width, display_height, BLACK)  # Clear the screen
 
 def draw_border():
     """
