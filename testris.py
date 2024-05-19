@@ -34,7 +34,7 @@ keypad = Keypad(display_drv, keys=[START, UNUSED, PAUSE, CW, DROP, CCW, LEFT, DO
 
 
 # Define the draw_block function
-draw_block = lambda x, y, index: display_drv.blit(x, y, block_size, block_size, blocks[index])
+draw_block = lambda x, y, index: display_drv.blit(blocks[index], x, y, block_size, block_size)
 
 # Get the display dimensions
 display_width = display_drv.width
@@ -162,7 +162,7 @@ def draw_banner(text, x=border_x_offset, y=0, color=WHITE, bg_color=BLACK):
     for text_line in text_lines:  # For each line of text
         text_fb.text(text_line, 0, text_y, color)  # Draw the text in the text buffer
         text_y += 8  # Move down 8 pixels
-    display_drv.blit(x, y, banner_width, banner_height, text_buffer)  # Draw the text buffer on the display
+    display_drv.blit(text_buffer, x, y, banner_width, banner_height)  # Draw the text buffer on the display
 
 def show_score(message=""):
     """
