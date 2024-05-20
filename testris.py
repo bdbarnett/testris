@@ -8,14 +8,16 @@ from random import choice, randint  # For random piece selection
 from json import load, dump  # For saving the high score
 from sys import exit  # For exiting the game
 from framebuf import FrameBuffer, RGB565  # For drawing text boxes
+from micropython import const  # For constant values
 
 try:
     from time import ticks_ms, ticks_diff  # For timing
-    from micropython import const  # For constant values
 except:
     from adafruit_ticks import ticks_ms, ticks_diff
 
-    const = lambda x: x
+if display_drv.width > display_drv.height:
+    display_drv.rotation += 90
+
 
 # Setup the keypad
 # keypad should have a .read() method that returns the values mapped below:
