@@ -58,17 +58,8 @@ if display_drv.requires_byte_swap:
 else:
     needs_swap = False
 
-# Define RGB565 colors
-BLACK = const(0x0000)
-CYAN = const(0x07FF)
-YELLOW = const(0xFFE0)
-PURPLE = const(0x780F)
-GREEN = const(0x07E0)
-BLUE = const(0x001F)
-RED = const(0xF800)
-ORANGE = const(0xFDA0)
-GRAY = const(0x8410)
-WHITE = const(0xFFFF)
+# Get the color palette
+pal = display_drv.get_palette(name="wheel", swapped=needs_swap)
 
 # Define other constants
 SPLASH_ENABLED = const(1)  # Set to 1 to show the splash screen, 0 to skip it
@@ -138,34 +129,32 @@ splash = [
 
 # Create the blocks: black for background, 7 piece colors, gray for border, white for touch targets
 blocks = []
-for color in [BLACK, CYAN, YELLOW, PURPLE, GREEN, BLUE, RED, ORANGE, GRAY, WHITE]:
+for color in [pal.BLACK, pal.CYAN, pal.YELLOW, pal.PURPLE, pal.GREEN, pal.BLUE, pal.RED, pal.ORANGE, pal.GREY, pal.WHITE]:
     # Allocate a buffer for the block, 2 bytes per pixel.  Use DMA and internal RAM.
     block = alloc_buffer(block_size * block_size * 2)
     for y in range(block_size):  # Working top to bottom
         for x in range(block_size):  # Then left to right
-            if color == BLACK:
-                pixel_color = BLACK  # No border or bevel for black
+            if color == pal.BLACK:
+                pixel_color = pal.BLACK  # No border or bevel for black
             elif (
                 x == 0 or x == block_size - 1 or y == 0 or y == block_size - 1
             ):  # Pixel on the border
-                pixel_color = BLACK  # Draw a black border around the block
+                pixel_color = pal.BLACK  # Draw a black border around the block
             # Left or top bevel pixel with even x on even rows, odd x on odd rows
             elif (x < block_bevel or y < block_bevel) and (x & 1 == y & 1):
-                pixel_color = WHITE  # Dither with white on the top and left bevels
+                pixel_color = pal.WHITE  # Dither with white on the top and left bevels
             # Right or bottom bevel pixel with even x on even rows, odd x on odd rows
             elif (
                 x > block_size - block_bevel - 1 or y > block_size - block_bevel - 1
             ) and (x & 1 == y & 1):
-                pixel_color = BLACK  # Dither with black on the bottom and right bevels
+                pixel_color = pal.BLACK  # Dither with black on the bottom and right bevels
             else:
                 pixel_color = color  # Fill the block with the specified color
             address = (
                 x + (y * block_size)
             ) * 2  # Address of the pixel in the buffer, 2 bytes per pixel
-            block[address] = pixel_color & 0xFF if not needs_swap else pixel_color >> 8
-            block[address + 1] = (
-                pixel_color >> 8 if not needs_swap else pixel_color & 0xFF
-            )
+            block[address] = pixel_color & 0xFF
+            block[address + 1] = (pixel_color >> 8)
     blocks.append(block)
 
 # Create a frame buffer for text
@@ -173,7 +162,7 @@ text_buffer = alloc_buffer(banner_width * banner_height * 2)
 text_fb = FrameBuffer(text_buffer, banner_width, banner_height, RGB565)
 
 
-def draw_banner(text, x=border_x_offset, y=0, color=WHITE, bg_color=BLACK):
+def draw_banner(text, x=border_x_offset, y=0, color=pal.WHITE, bg_color=pal.BLACK):
     """
     Draw text on the banner.
 
@@ -181,8 +170,8 @@ def draw_banner(text, x=border_x_offset, y=0, color=WHITE, bg_color=BLACK):
     text (str): The text to draw.
     x (int, optional): The horizontal position at which to draw the text.
     y (int, optional): The vertical position at which to draw the text.
-    color (int, optional): The color of the text. Defaults to WHITE.
-    bg_color (int, optional): The background color of the text. Defaults to BLACK.
+    color (int, optional): The color of the text. Defaults to pal.WHITE.
+    bg_color (int, optional): The background color of the text. Defaults to pal.BLACK.
     """
     text_fb.fill(bg_color)  # Clear the text buffer
     text_lines = text.split("\n")  # Split the text into lines
@@ -230,7 +219,7 @@ def clear_screen():
     Clear the screen.
     """
     display_drv.fill_rect(
-        0, 0, display_width, display_height, BLACK
+        0, 0, display_width, display_height, pal.BLACK
     )  # Clear the screen
 
 
