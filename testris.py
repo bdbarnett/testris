@@ -4,6 +4,7 @@ Testris game implemented in MicroPython by Brad Barnett.
 
 # For the display & optional touch drivers
 from board_config import display_drv
+from palettes import get_palette
 from random import choice, randint  # For random piece selection
 from json import load, dump  # For saving the high score
 from sys import exit  # For exiting the game
@@ -49,7 +50,7 @@ display_width = display_drv.width
 display_height = display_drv.height
 
 # Define how buffers are allocated
-alloc_buffer = lambda size: memoryview(bytearray(size))
+alloc_buffer = display_drv.alloc_buffer
 
 # If byte swapping is required and the display bus is capable of having byte swapping disabled,
 # disable it and set a flag so we can swap the color bytes as they are created.
@@ -59,7 +60,7 @@ else:
     needs_swap = False
 
 # Get the color palette
-pal = display_drv.get_palette(name="wheel", swapped=needs_swap)
+pal = get_palette(name="cube", swapped=needs_swap)
 
 # Define other constants
 SPLASH_ENABLED = const(1)  # Set to 1 to show the splash screen, 0 to skip it
