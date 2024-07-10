@@ -4,7 +4,7 @@ Testris game implemented in MicroPython by Brad Barnett.
 
 # For the display & optional touch drivers
 from board_config import display_drv
-from palettes import get_palette
+from graphics.palettes import get_palette
 from random import choice, randint  # For random piece selection
 from json import load, dump  # For saving the high score
 from sys import exit  # For exiting the game
